@@ -1,14 +1,4 @@
 {
   "version": 2,
-  "name": "smart-study-group-matcher",
-  "projects": [
-    {
-      "name": "frontend",
-      "source": "./frontend"
-    },
-    {
-      "name": "backend",
-      "source": "./backend"
-    }
-  ]
+  "name": "smart-study-group-matcher-monorepo"
 }
