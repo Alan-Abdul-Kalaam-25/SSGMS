@@ -18,6 +18,7 @@ const userSchema = new mongoose.Schema(
         /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
         "Please enter a valid email",
       ],
+      index: true, // Using single index declaration
     },
     password: {
       type: String,
@@ -147,7 +148,6 @@ const userSchema = new mongoose.Schema(
 );
 
 // Index for faster queries
-userSchema.index({ email: 1 });
 userSchema.index({ subjects: 1 });
 userSchema.index({ university: 1, year: 1 });
 
