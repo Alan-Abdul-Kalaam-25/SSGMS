@@ -1,10 +1,38 @@
 services:
-  - type: web
+  - type: static
     name: ssgms-frontend
-    runtime: node
-    buildCommand: npm install && npm run build
-    startCommand: npm run preview
+    staticPublishPath: ./dist
+    buildCommand: npm ci && npm run validate && npm run build
+    pullRequestPreviewsEnabled: true
     envVars:
       - key: NODE_ENV
         value: production
-    staticPublishPath: ./dist
+      # Add these in Render dashboard:
+      # - key: VITE_API_URL
+      #   value: https://your-backend-service.onrender.com/api
+      # - key: VITE_APP_NAME
+      #   value: Smart Study Group Matcher
+      # - key: VITE_APP_VERSION
+      #   value: 1.0.0
+      # - key: VITE_ENABLE_ERROR_REPORTING
+      #   value: true
+    headers:
+      - path: /*
+        name: X-Robots-Tag
+        value: noindex
+      - path: /*
+        name: X-Frame-Options
+        value: DENY
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+      - path: /*
+        name: Referrer-Policy
+        value: strict-origin-when-cross-origin
+      - path: /*
+        name: Permissions-Policy
+        value: geolocation=(), microphone=(), camera=()
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html

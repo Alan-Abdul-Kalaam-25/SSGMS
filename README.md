@@ -1,4 +1,4 @@
-# 📚 Smart Study Group Matcher System
+# 📚 Smart Study Group Matcher System (SSGMS)
 
 > An intelligent platform that connects students with compatible study partners based on subjects, schedules, learning styles, and academic goals.
 
@@ -6,18 +6,20 @@
 ![React](https://img.shields.io/badge/Frontend-React%2018-blue)
 ![Node.js](https://img.shields.io/badge/Backend-Node.js%2018-green)
 ![MongoDB](https://img.shields.io/badge/Database-MongoDB-darkgreen)
-![Vercel](https://img.shields.io/badge/Hosting-Vercel-black)
+![Security](https://img.shields.io/badge/Security-Enterprise%20Grade-red)
+![Code Quality](https://img.shields.io/badge/Code%20Quality-Industry%20Standard-yellow)
 
-## 🎯 Problem Solved
+## 🎯 **Problem Solved**
 
-Students often struggle to find the right study partners, leading to:
+Students struggle to find effective study partners, leading to:
 
-- ❌ Mismatched learning levels and goals
-- ❌ Conflicting schedules and availability
-- ❌ Incompatible study styles
-- ❌ Wasted time in unproductive groups
+- ❌ **Mismatched learning levels** - Beginners paired with advanced students
+- ❌ **Schedule conflicts** - People wanting to study at incompatible times
+- ❌ **Incompatible study styles** - Discussion-lovers paired with quiet studiers
+- ❌ **Different academic goals** - Exam preppers mixed with casual learners
+- ❌ **Wasted time** - Unproductive groups that don't work well together
 
-**StudyMatcher** solves this with intelligent compatibility matching!
+**SSGMS** solves this with an intelligent matching algorithm that analyzes multiple compatibility factors!
 
 ## ✨ Features
 

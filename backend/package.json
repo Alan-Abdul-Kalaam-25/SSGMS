@@ -8,7 +8,15 @@
     "dev": "nodemon server.js",
     "build": "echo 'No build step required'",
     "vercel-build": "echo 'Building for Vercel'",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "eslint . --ext .js --ignore-path .gitignore",
+    "lint:fix": "eslint . --ext .js --fix --ignore-path .gitignore",
+    "format": "prettier --write \"**/*.{js,json,md}\" --ignore-path .gitignore",
+    "format:check": "prettier --check \"**/*.{js,json,md}\" --ignore-path .gitignore",
+    "validate": "npm run lint && npm run format:check",
+    "validate-env": "node scripts/validate-env.js",
+    "prepare": "npm run validate",
+    "prestart": "npm run validate-env"
   },
   "author": "Alan-Abdul-Kalaam-25",
   "license": "ISC",
@@ -17,11 +25,18 @@
     "cors": "^2.8.5",
     "dotenv": "^17.2.2",
     "express": "^5.1.0",
+    "express-rate-limit": "^8.1.0",
+    "express-validator": "^7.2.1",
+    "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.2",
     "mongodb": "^6.19.0",
     "mongoose": "^8.18.1"
   },
   "devDependencies": {
-    "nodemon": "^3.1.10"
+    "eslint": "^8.57.1",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-plugin-import": "^2.32.0",
+    "nodemon": "^3.1.10",
+    "prettier": "^3.6.2"
   }
 }

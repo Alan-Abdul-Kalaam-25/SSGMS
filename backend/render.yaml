@@ -2,10 +2,35 @@ services:
   - type: web
     name: ssgms-backend
     runtime: node
-    buildCommand: npm install
+    buildCommand: npm ci && npm run validate
     startCommand: npm start
+    healthCheckPath: /api/health
+    disk:
+      name: ssgms-backend-disk
+      mountPath: /opt/render/project/logs
+      sizeGB: 1
     envVars:
       - key: NODE_ENV
         value: production
       - key: PORT
         value: 10000
+      - key: API_VERSION
+        value: v1
+      # Add these in Render dashboard:
+      # - key: MONGODB_URI
+      #   value: your-mongodb-atlas-connection-string
+      # - key: JWT_SECRET
+      #   value: your-secure-jwt-secret
+      # - key: JWT_EXPIRES_IN
+      #   value: 7d
+      # - key: FRONTEND_URL
+      #   value: https://your-frontend-service.onrender.com
+      # - key: ALLOWED_ORIGINS
+      #   value: https://your-frontend-service.onrender.com
+      # - key: LOG_LEVEL
+      #   value: warn
+      # - key: LOG_FORMAT
+      #   value: json
+    scaling:
+      minInstances: 1
+      maxInstances: 5

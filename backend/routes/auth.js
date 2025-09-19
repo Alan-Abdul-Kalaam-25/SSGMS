@@ -1,48 +1,37 @@
-const express = require("express");
-const { User } = require("../models");
-const { generateToken } = require("../utils/jwt");
-const { authMiddleware } = require("../middleware/auth");
+const express = require('express');
+const { User } = require('../models');
+const { generateToken } = require('../utils/jwt');
+const { authMiddleware } = require('../middleware/auth');
+const { logger } = require('../utils/logger');
+const {
+  validateUserRegistration,
+  validateUserLogin,
+  createValidationMiddleware,
+} = require('../utils/validation');
 const router = express.Router();
 
 // @route   POST /api/auth/signup
 // @desc    Register a new user
 // @access  Public
-router.post("/signup", async (req, res) => {
+router.post('/signup', createValidationMiddleware(validateUserRegistration), async (req, res) => {
   try {
-    const { name, email, password, university, year, major } = req.body;
-
-    // Validation
-    if (!name || !email || !password || !university || !year || !major) {
-      return res.status(400).json({
-        message:
-          "Please provide all required fields: name, email, password, university, year, major",
-      });
-    }
-
-    if (password.length < 6) {
-      return res.status(400).json({
-        message: "Password must be at least 6 characters long",
-      });
-    }
+    const validatedData = req.validatedData;
 
     // Check if user already exists
-    const existingUser = await User.findOne({ email: email.toLowerCase() });
+    const existingUser = await User.findOne({ email: validatedData.email });
     if (existingUser) {
-      return res.status(400).json({
-        message: "User with this email already exists",
+      logger.warn('Registration attempt with existing email', {
+        email: validatedData.email,
+        ip: req.ip,
+      });
+
+      return res.status(409).json({
+        message: 'User with this email already exists',
       });
     }
 
     // Create new user
-    const user = new User({
-      name: name.trim(),
-      email: email.toLowerCase().trim(),
-      password,
-      university: university.trim(),
-      year,
-      major: major.trim(),
-    });
-
+    const user = new User(validatedData);
     await user.save();
 
     // Generate token
@@ -52,30 +41,39 @@ router.post("/signup", async (req, res) => {
     user.lastLogin = new Date();
     await user.save();
 
+    logger.auth('User registered', user._id, {
+      email: validatedData.email,
+      university: validatedData.university,
+      ip: req.ip,
+    });
+
     res.status(201).json({
-      message: "User registered successfully",
+      message: 'User registered successfully',
       user: user.toJSON(),
       token,
     });
   } catch (error) {
-    console.error("Signup error:", error);
+    logger.errorWithStack('Signup error', error, {
+      email: req.body?.email,
+      ip: req.ip,
+    });
 
-    if (error.name === "ValidationError") {
-      const errors = Object.values(error.errors).map((err) => err.message);
+    if (error.name === 'ValidationError') {
+      const errors = Object.values(error.errors).map(err => err.message);
       return res.status(400).json({
-        message: "Validation error",
+        message: 'Validation error',
         errors,
       });
     }
 
     if (error.code === 11000) {
-      return res.status(400).json({
-        message: "User with this email already exists",
+      return res.status(409).json({
+        message: 'User with this email already exists',
       });
     }
 
     res.status(500).json({
-      message: "Error creating user account",
+      message: 'Error creating user account',
     });
   }
 });
@@ -83,31 +81,29 @@ router.post("/signup", async (req, res) => {
 // @route   POST /api/auth/login
 // @desc    Authenticate user and get token
 // @access  Public
-router.post("/login", async (req, res) => {
+router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
 
     // Validation
     if (!email || !password) {
       return res.status(400).json({
-        message: "Please provide email and password",
+        message: 'Please provide email and password',
       });
     }
 
     // Find user and include password for comparison
-    const user = await User.findOne({ email: email.toLowerCase() }).select(
-      "+password"
-    );
+    const user = await User.findOne({ email: email.toLowerCase() }).select('+password');
 
     if (!user) {
       return res.status(401).json({
-        message: "Invalid email or password",
+        message: 'Invalid email or password',
       });
     }
 
     if (!user.isActive) {
       return res.status(401).json({
-        message: "Account is deactivated. Please contact support.",
+        message: 'Account is deactivated. Please contact support.',
       });
     }
 
@@ -115,7 +111,7 @@ router.post("/login", async (req, res) => {
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
       return res.status(401).json({
-        message: "Invalid email or password",
+        message: 'Invalid email or password',
       });
     }
 
@@ -127,14 +123,14 @@ router.post("/login", async (req, res) => {
     await user.save();
 
     res.json({
-      message: "Login successful",
+      message: 'Login successful',
       user: user.toJSON(),
       token,
     });
   } catch (error) {
-    console.error("Login error:", error);
+    console.error('Login error:', error);
     res.status(500).json({
-      message: "Error during login",
+      message: 'Error during login',
     });
   }
 });
@@ -142,15 +138,15 @@ router.post("/login", async (req, res) => {
 // @route   GET /api/auth/me
 // @desc    Get current user profile
 // @access  Private
-router.get("/me", authMiddleware, async (req, res) => {
+router.get('/me', authMiddleware, async (req, res) => {
   try {
     res.json({
       user: req.user,
     });
   } catch (error) {
-    console.error("Get current user error:", error);
+    console.error('Get current user error:', error);
     res.status(500).json({
-      message: "Error retrieving user profile",
+      message: 'Error retrieving user profile',
     });
   }
 });
@@ -158,28 +154,28 @@ router.get("/me", authMiddleware, async (req, res) => {
 // @route   PUT /api/auth/profile
 // @desc    Update user profile
 // @access  Private
-router.put("/profile", authMiddleware, async (req, res) => {
+router.put('/profile', authMiddleware, async (req, res) => {
   try {
     const updates = req.body;
     const userId = req.user._id;
 
     // Fields that can be updated
     const allowedUpdates = [
-      "name",
-      "university",
-      "year",
-      "major",
-      "subjects",
-      "studyGoals",
-      "experienceLevel",
-      "preferredGroupSize",
-      "studyStyle",
-      "availability",
+      'name',
+      'university',
+      'year',
+      'major',
+      'subjects',
+      'studyGoals',
+      'experienceLevel',
+      'preferredGroupSize',
+      'studyStyle',
+      'availability',
     ];
 
     // Filter out any fields not in the allowed list
     const filteredUpdates = {};
-    Object.keys(updates).forEach((key) => {
+    Object.keys(updates).forEach(key => {
       if (allowedUpdates.includes(key)) {
         filteredUpdates[key] = updates[key];
       }
@@ -187,7 +183,7 @@ router.put("/profile", authMiddleware, async (req, res) => {
 
     if (Object.keys(filteredUpdates).length === 0) {
       return res.status(400).json({
-        message: "No valid fields provided for update",
+        message: 'No valid fields provided for update',
       });
     }
 
@@ -198,27 +194,27 @@ router.put("/profile", authMiddleware, async (req, res) => {
 
     if (!user) {
       return res.status(404).json({
-        message: "User not found",
+        message: 'User not found',
       });
     }
 
     res.json({
-      message: "Profile updated successfully",
+      message: 'Profile updated successfully',
       user: user.toJSON(),
     });
   } catch (error) {
-    console.error("Profile update error:", error);
+    console.error('Profile update error:', error);
 
-    if (error.name === "ValidationError") {
-      const errors = Object.values(error.errors).map((err) => err.message);
+    if (error.name === 'ValidationError') {
+      const errors = Object.values(error.errors).map(err => err.message);
       return res.status(400).json({
-        message: "Validation error",
+        message: 'Validation error',
         errors,
       });
     }
 
     res.status(500).json({
-      message: "Error updating profile",
+      message: 'Error updating profile',
     });
   }
 });
@@ -226,31 +222,31 @@ router.put("/profile", authMiddleware, async (req, res) => {
 // @route   POST /api/auth/change-password
 // @desc    Change user password
 // @access  Private
-router.post("/change-password", authMiddleware, async (req, res) => {
+router.post('/change-password', authMiddleware, async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body;
     const userId = req.user._id;
 
     if (!currentPassword || !newPassword) {
       return res.status(400).json({
-        message: "Please provide current password and new password",
+        message: 'Please provide current password and new password',
       });
     }
 
     if (newPassword.length < 6) {
       return res.status(400).json({
-        message: "New password must be at least 6 characters long",
+        message: 'New password must be at least 6 characters long',
       });
     }
 
     // Get user with password
-    const user = await User.findById(userId).select("+password");
+    const user = await User.findById(userId).select('+password');
 
     // Verify current password
     const isMatch = await user.comparePassword(currentPassword);
     if (!isMatch) {
       return res.status(401).json({
-        message: "Current password is incorrect",
+        message: 'Current password is incorrect',
       });
     }
 
@@ -259,12 +255,12 @@ router.post("/change-password", authMiddleware, async (req, res) => {
     await user.save();
 
     res.json({
-      message: "Password changed successfully",
+      message: 'Password changed successfully',
     });
   } catch (error) {
-    console.error("Change password error:", error);
+    console.error('Change password error:', error);
     res.status(500).json({
-      message: "Error changing password",
+      message: 'Error changing password',
     });
   }
 });
@@ -272,19 +268,19 @@ router.post("/change-password", authMiddleware, async (req, res) => {
 // @route   POST /api/auth/deactivate
 // @desc    Deactivate user account
 // @access  Private
-router.post("/deactivate", authMiddleware, async (req, res) => {
+router.post('/deactivate', authMiddleware, async (req, res) => {
   try {
     const userId = req.user._id;
 
     await User.findByIdAndUpdate(userId, { isActive: false });
 
     res.json({
-      message: "Account deactivated successfully",
+      message: 'Account deactivated successfully',
     });
   } catch (error) {
-    console.error("Deactivate account error:", error);
+    console.error('Deactivate account error:', error);
     res.status(500).json({
-      message: "Error deactivating account",
+      message: 'Error deactivating account',
     });
   }
 });
