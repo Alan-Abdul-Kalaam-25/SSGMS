@@ -79,13 +79,13 @@ const Signup = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-violet-50 via-purple-50 to-pink-50 flex items-center justify-center p-4">
       <div className="w-full max-w-2xl">
-        <Card className="bg-white/90 backdrop-blur-sm shadow-2xl border-0">
+        <Card className="bg-white/95 backdrop-blur-md shadow-2xl shadow-violet-200/50 border-0">
           <CardHeader className="text-center pb-8">
-            <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-full flex items-center justify-center">
+            <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-violet-500 via-purple-500 to-pink-500 rounded-full flex items-center justify-center shadow-lg">
               <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center">
-                <div className="text-blue-600 font-bold text-xl">S</div>
+                <div className="text-violet-600 font-bold text-xl">S</div>
               </div>
             </div>
             <CardTitle className="text-2xl font-bold text-gray-900 mb-2">
@@ -117,7 +117,7 @@ const Signup = () => {
                     value={formData.firstName}
                     onChange={handleChange}
                     required
-                    className="h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+                    className="h-12 border-violet-200 focus:border-violet-500 focus:ring-violet-500 bg-white/90"
                   />
                 </div>
                 <div className="space-y-2">
@@ -131,7 +131,7 @@ const Signup = () => {
                     value={formData.lastName}
                     onChange={handleChange}
                     required
-                    className="h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+                    className="h-12 border-violet-200 focus:border-violet-500 focus:ring-violet-500 bg-white/90"
                   />
                 </div>
               </div>
@@ -147,7 +147,7 @@ const Signup = () => {
                   value={formData.email}
                   onChange={handleChange}
                   required
-                  className="h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+                  className="h-12 border-violet-200 focus:border-violet-500 focus:ring-violet-500 bg-white/90"
                 />
               </div>
 
@@ -163,7 +163,7 @@ const Signup = () => {
                     value={formData.university}
                     onChange={handleChange}
                     required
-                    className="h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+                    className="h-12 border-violet-200 focus:border-violet-500 focus:ring-violet-500 bg-white/90"
                   />
                 </div>
                 <div className="space-y-2">
@@ -177,7 +177,7 @@ const Signup = () => {
                     value={formData.major}
                     onChange={handleChange}
                     required
-                    className="h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+                    className="h-12 border-violet-200 focus:border-violet-500 focus:ring-violet-500 bg-white/90"
                   />
                 </div>
               </div>
@@ -194,12 +194,12 @@ const Signup = () => {
                     value={formData.password}
                     onChange={handleChange}
                     required
-                    className="h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500 pr-12"
+                    className="h-12 border-violet-200 focus:border-violet-500 focus:ring-violet-500 pr-12 bg-white/90"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-violet-600 transition-colors"
                   >
                     {showPassword ? (
                       <EyeOff className="h-5 w-5" />
@@ -243,12 +243,12 @@ const Signup = () => {
                     value={formData.confirmPassword}
                     onChange={handleChange}
                     required
-                    className="h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500 pr-12"
+                    className="h-12 border-violet-200 focus:border-violet-500 focus:ring-violet-500 pr-12 bg-white/90"
                   />
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-violet-600 transition-colors"
                   >
                     {showConfirmPassword ? (
                       <EyeOff className="h-5 w-5" />
@@ -259,7 +259,7 @@ const Signup = () => {
                   {formData.confirmPassword &&
                     formData.password === formData.confirmPassword && (
                       <div className="absolute right-12 top-1/2 transform -translate-y-1/2">
-                        <Check className="h-5 w-5 text-green-500" />
+                        <Check className="h-5 w-5 text-emerald-500" />
                       </div>
                     )}
                 </div>
@@ -271,31 +271,27 @@ const Signup = () => {
                   id="terms"
                   checked={agreedToTerms}
                   onChange={(e) => setAgreedToTerms(e.target.checked)}
-                  className="mt-0.5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  className="mt-0.5 rounded border-violet-300 text-violet-600 focus:ring-violet-500"
                 />
                 <label htmlFor="terms" className="text-sm text-gray-600">
                   I agree to the{" "}
                   <Link
                     to="/terms"
-                    className="text-blue-600 hover:text-blue-700"
+                    className="text-violet-600 hover:text-violet-700"
                   >
                     Terms of Service
                   </Link>{" "}
                   and{" "}
                   <Link
                     to="/privacy"
-                    className="text-blue-600 hover:text-blue-700"
+                    className="text-violet-600 hover:text-violet-700"
                   >
                     Privacy Policy
                   </Link>
                 </label>
               </div>
 
-              <Button
-                type="submit"
-                className="w-full h-12 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all duration-300"
-                disabled={loading}
-              >
+              <Button type="submit" className="w-full h-12" disabled={loading}>
                 {loading ? (
                   <div className="flex items-center gap-2">
                     <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
@@ -309,7 +305,7 @@ const Signup = () => {
 
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-200"></div>
+                <div className="w-full border-t border-violet-200"></div>
               </div>
               <div className="relative flex justify-center text-sm">
                 <span className="px-2 bg-white text-gray-500">
@@ -319,10 +315,7 @@ const Signup = () => {
             </div>
 
             <div className="grid grid-cols-2 gap-3">
-              <Button
-                variant="outline"
-                className="h-12 border-gray-200 hover:bg-gray-50"
-              >
+              <Button variant="outline" className="h-12">
                 <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
                   <path
                     fill="currentColor"
@@ -343,10 +336,7 @@ const Signup = () => {
                 </svg>
                 Google
               </Button>
-              <Button
-                variant="outline"
-                className="h-12 border-gray-200 hover:bg-gray-50"
-              >
+              <Button variant="outline" className="h-12">
                 <svg
                   className="w-5 h-5 mr-2"
                   fill="currentColor"
@@ -363,7 +353,7 @@ const Signup = () => {
                 Already have an account?{" "}
                 <Link
                   to="/login"
-                  className="text-blue-600 hover:text-blue-700 font-medium"
+                  className="text-violet-600 hover:text-violet-700 font-medium"
                 >
                   Sign in
                 </Link>

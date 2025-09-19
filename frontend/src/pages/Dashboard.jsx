@@ -1,5 +1,6 @@
 ﻿import React, { useState, useEffect } from "react";
 import { useAuth } from "../contexts/AuthContext";
+import { useNavbarTheme, navbarThemes } from "../contexts/NavbarThemeContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -18,6 +19,12 @@ import {
 
 const Dashboard = () => {
   const { user } = useAuth();
+  const { updateNavbarTheme } = useNavbarTheme();
+
+  useEffect(() => {
+    updateNavbarTheme(navbarThemes.dashboard);
+  }, [updateNavbarTheme]);
+
   const [stats, setStats] = useState({
     totalGroups: 5,
     activeGroups: 3,
