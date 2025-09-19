@@ -1,9 +1,9 @@
 const express = require('express');
 const cors = require('cors');
-const mongoose = require('mongoose');
 
 // Load and validate configuration
 const { config, validateConfig, displayConfig } = require('./config/env');
+const { initializeSupabase, testConnection } = require('./config/supabase');
 const { logger, createRequestLogger, createErrorLogger } = require('./utils/logger');
 const {
   createGeneralRateLimit,
@@ -122,18 +122,6 @@ app.use((err, req, res, next) => {
     });
   }
 
-  if (err.name === 'CastError' && err.kind === 'ObjectId') {
-    return res.status(400).json({
-      message: 'Invalid ID format',
-    });
-  }
-
-  if (err.code === 11000) {
-    return res.status(409).json({
-      message: 'Resource already exists',
-    });
-  }
-
   // Default error response
   res.status(err.status || 500).json({
     message: config.enableDetailedErrors
@@ -158,30 +146,37 @@ app.use((req, res) => {
   });
 });
 
-// Connect to MongoDB
-mongoose
-  .connect(config.database.uri)
-  .then(() => {
-    logger.info('Connected to MongoDB', {
-      database: config.database.name,
-      isLocal: config.database.uri.includes('localhost'),
-    });
+// Initialize Supabase and start server
+async function startServer() {
+  try {
+    // Initialize Supabase
+    initializeSupabase();
 
+    // Test Supabase connection
+    const isConnected = await testConnection();
+    if (!isConnected) {
+      logger.warn('Supabase connection test failed, but continuing...');
+    }
+
+    // Start the server
     app.listen(config.port, () => {
       logger.info(`Server started successfully`, {
         port: config.port,
         environment: config.nodeEnv,
         apiVersion: config.apiVersion,
+        supabaseConnected: isConnected,
       });
     });
-  })
-  .catch(error => {
-    logger.error('Database connection failed', {
+  } catch (error) {
+    logger.error('Failed to start server', {
       error: error.message,
-      uri: config.database.uri.replace(/\/\/[^:]+:[^@]+@/, '//***:***@'), // Hide credentials
     });
     process.exit(1);
-  });
+  }
+}
+
+// Start the server
+startServer();
 
 // Graceful shutdown
 process.on('SIGTERM', () => {
@@ -193,7 +188,5 @@ process.on('SIGINT', () => {
   logger.info('SIGINT received, shutting down gracefully');
   process.exit(0);
 });
-
-module.exports = app;
 
 module.exports = app;

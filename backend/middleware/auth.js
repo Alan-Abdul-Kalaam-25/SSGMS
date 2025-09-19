@@ -1,62 +1,68 @@
-const jwt = require("jsonwebtoken");
-const { User } = require("../models");
+const { getSupabase } = require('../config/supabase');
 
-// Middleware to verify JWT token
+// Middleware to verify Supabase JWT token
 const authMiddleware = async (req, res, next) => {
   try {
-    const authHeader = req.header("Authorization");
+    const authHeader = req.header('Authorization');
 
     if (!authHeader) {
       return res.status(401).json({
-        message: "Access denied. No token provided.",
+        message: 'Access denied. No token provided.',
       });
     }
 
-    const token = authHeader.startsWith("Bearer ")
-      ? authHeader.slice(7)
-      : authHeader;
+    const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : authHeader;
 
     if (!token) {
       return res.status(401).json({
-        message: "Access denied. Invalid token format.",
+        message: 'Access denied. Invalid token format.',
       });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const supabase = getSupabase();
 
-    // Get user from database (excluding password)
-    const user = await User.findById(decoded.userId).select("-password");
+    // Verify the JWT token with Supabase
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.getUser(token);
 
-    if (!user) {
+    if (error || !user) {
       return res.status(401).json({
-        message: "Access denied. User not found.",
+        message: 'Access denied. Invalid token.',
       });
     }
 
-    if (!user.isActive) {
-      return res.status(401).json({
-        message: "Access denied. Account is deactivated.",
+    // Get additional user profile data from the profiles table
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', user.id)
+      .single();
+
+    if (profileError && profileError.code !== 'PGRST116') {
+      // PGRST116 = no rows returned
+      console.error('Error fetching user profile:', profileError);
+      return res.status(500).json({
+        message: 'Error fetching user profile.',
       });
     }
 
-    req.user = user;
+    // Combine Supabase user data with profile data
+    req.user = {
+      id: user.id,
+      email: user.email,
+      emailConfirmed: user.email_confirmed_at !== null,
+      createdAt: user.created_at,
+      lastSignIn: user.last_sign_in_at,
+      ...profile, // Merge profile data if it exists
+    };
+
     next();
   } catch (error) {
-    if (error.name === "JsonWebTokenError") {
-      return res.status(401).json({
-        message: "Access denied. Invalid token.",
-      });
-    }
-
-    if (error.name === "TokenExpiredError") {
-      return res.status(401).json({
-        message: "Access denied. Token expired.",
-      });
-    }
-
-    console.error("Auth middleware error:", error);
+    console.error('Auth middleware error:', error);
     res.status(500).json({
-      message: "Internal server error during authentication.",
+      message: 'Internal server error during authentication.',
     });
   }
 };
@@ -65,7 +71,7 @@ const authMiddleware = async (req, res, next) => {
 const requireCompleteProfile = (req, res, next) => {
   if (!req.user.profileCompleted) {
     return res.status(403).json({
-      message: "Please complete your profile before accessing this feature.",
+      message: 'Please complete your profile before accessing this feature.',
       profileCompleted: false,
     });
   }
@@ -75,25 +81,43 @@ const requireCompleteProfile = (req, res, next) => {
 // Middleware for optional authentication (doesn't fail if no token)
 const optionalAuth = async (req, res, next) => {
   try {
-    const authHeader = req.header("Authorization");
+    const authHeader = req.header('Authorization');
 
     if (!authHeader) {
       return next();
     }
 
-    const token = authHeader.startsWith("Bearer ")
-      ? authHeader.slice(7)
-      : authHeader;
+    const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : authHeader;
 
     if (!token) {
       return next();
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findById(decoded.userId).select("-password");
+    const supabase = getSupabase();
 
-    if (user && user.isActive) {
-      req.user = user;
+    // Verify the JWT token with Supabase
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.getUser(token);
+
+    if (!error && user) {
+      // Get additional user profile data from the profiles table
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+
+      // Combine Supabase user data with profile data
+      req.user = {
+        id: user.id,
+        email: user.email,
+        emailConfirmed: user.email_confirmed_at !== null,
+        createdAt: user.created_at,
+        lastSignIn: user.last_sign_in_at,
+        ...profile, // Merge profile data if it exists
+      };
     }
 
     next();

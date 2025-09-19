@@ -12,7 +12,7 @@ const PATTERNS = {
   email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
   password: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d@$!%*?&]{8,}$/,
   username: /^[a-zA-Z0-9_-]{3,20}$/,
-  objectId: /^[0-9a-fA-F]{24}$/,
+  uuid: /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
   url: /^https?:\/\/[^\s$.?#].[^\s]*$/,
   phone: /^\+?[\d\s\-\(\)]{10,15}$/,
 };
@@ -108,15 +108,15 @@ function validatePassword(password, options = {}) {
 }
 
 /**
- * Validate ObjectId format
+ * Validate UUID format (Supabase uses UUIDs for IDs)
  */
-function validateObjectId(id, fieldName = 'id', required = true) {
+function validateUUID(id, fieldName = 'id', required = true) {
   if (!id) {
     if (required) throw new ValidationError(`${fieldName} is required`, fieldName);
     return null;
   }
 
-  if (!PATTERNS.objectId.test(id)) {
+  if (!PATTERNS.uuid.test(id)) {
     throw new ValidationError(`Invalid ${fieldName} format`, fieldName, id);
   }
 
@@ -313,7 +313,7 @@ module.exports = {
   sanitizeString,
   validateEmail,
   validatePassword,
-  validateObjectId,
+  validateUUID,
   validateEnum,
   validateArray,
   validateUserRegistration,

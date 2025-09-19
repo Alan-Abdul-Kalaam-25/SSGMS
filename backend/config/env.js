@@ -31,18 +31,12 @@ const config = {
   port: parseInt(process.env.PORT) || 3001,
   apiVersion: process.env.API_VERSION || 'v1',
 
-  // Database Configuration
-  database: {
-    uri: process.env.MONGODB_URI || 'mongodb://localhost:27017/studymatcher',
-    name: process.env.DB_NAME || 'studymatcher',
-  },
-
-  // Authentication & Security
-  auth: {
-    jwtSecret: process.env.JWT_SECRET,
-    jwtExpiresIn: process.env.JWT_EXPIRES_IN || '7d',
-    jwtRefreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '30d',
-    bcryptSaltRounds: parseInt(process.env.BCRYPT_SALT_ROUNDS) || 12,
+  // Supabase Configuration
+  supabase: {
+    url: process.env.SUPABASE_URL,
+    anonKey: process.env.SUPABASE_ANON_KEY,
+    serviceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY,
+    enableRealtime: process.env.SUPABASE_ENABLE_REALTIME !== 'false',
   },
 
   // CORS & Frontend
@@ -111,9 +105,13 @@ const config = {
 function validateConfig() {
   const errors = [];
 
-  // Required in all environments
-  if (!config.auth.jwtSecret) {
-    errors.push('JWT_SECRET is required');
+  // Required Supabase configuration
+  if (!config.supabase.url) {
+    errors.push('SUPABASE_URL is required');
+  }
+
+  if (!config.supabase.anonKey) {
+    errors.push('SUPABASE_ANON_KEY is required');
   }
 
   // Production-specific requirements
@@ -122,19 +120,16 @@ function validateConfig() {
       errors.push('SESSION_SECRET is required in production');
     }
 
-    if (config.auth.jwtSecret === 'your-super-secure-jwt-secret-key-change-this-in-production') {
-      errors.push('JWT_SECRET must be changed from default value in production');
+    if (!config.supabase.serviceRoleKey) {
+      errors.push('SUPABASE_SERVICE_ROLE_KEY is required in production');
     }
 
-    if (!config.database.uri.includes('mongodb+srv://')) {
-      console.warn('⚠️  Warning: Using local MongoDB in production is not recommended');
-    }
-  }
-
-  // Development warnings
-  if (config.isDevelopment) {
-    if (config.auth.jwtSecret === 'your-super-secure-jwt-secret-key-change-this-in-production') {
-      console.warn('⚠️  Warning: Using default JWT_SECRET in development');
+    // Validate Supabase URL format
+    if (
+      !config.supabase.url.startsWith('https://') ||
+      !config.supabase.url.includes('.supabase.co')
+    ) {
+      console.warn('⚠️  Warning: Supabase URL format seems incorrect');
     }
   }
 
@@ -155,13 +150,11 @@ function displayConfig() {
     nodeEnv: config.nodeEnv,
     port: config.port,
     apiVersion: config.apiVersion,
-    database: {
-      name: config.database.name,
-      isLocal: config.database.uri.includes('localhost'),
-    },
-    auth: {
-      jwtExpiresIn: config.auth.jwtExpiresIn,
-      bcryptSaltRounds: config.auth.bcryptSaltRounds,
+    supabase: {
+      url: config.supabase.url ? config.supabase.url.substring(0, 30) + '...' : 'not set',
+      hasAnonKey: !!config.supabase.anonKey,
+      hasServiceRoleKey: !!config.supabase.serviceRoleKey,
+      realtimeEnabled: config.supabase.enableRealtime,
     },
     cors: {
       frontendUrl: config.cors.frontendUrl,
